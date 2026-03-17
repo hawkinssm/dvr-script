@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="adc230f2-5904-4413-9b87-b2e85f270466" name="Changes" comment="Script v1">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="adc230f2-5904-4413-9b87-b2e85f270466" name="Changes" comment="Script v2, login loop added">
+      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/downloader.py" beforeDir="false" afterPath="$PROJECT_DIR$/downloader.py" afterDir="false" />
     </list>
@@ -74,7 +74,15 @@
       <option name="project" value="LOCAL" />
       <updated>1773767788634</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Script v2, login loop added">
+      <option name="closed" value="true" />
+      <created>1773768603759</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1773768603759</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -82,6 +90,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Script v1" />
-    <option name="LAST_COMMIT_MESSAGE" value="Script v1" />
+    <MESSAGE value="Script v2, login loop added" />
+    <option name="LAST_COMMIT_MESSAGE" value="Script v2, login loop added" />
   </component>
 </project>

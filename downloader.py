@@ -1,8 +1,9 @@
 import os
 from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
-
-load_dotenv()
+# Specify env path to match this script for use with cron
+from pathlib import Path
+load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
 EMAIL = os.getenv("DVR_EMAIL")
 PASSWORD = os.getenv("DVR_PASSWORD")
@@ -25,7 +26,7 @@ def run():
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)  # set True later once it's working
+        browser = p.chromium.launch(headless=True)
         context = browser.new_context(accept_downloads=True)
         page = context.new_page()
 
@@ -47,6 +48,7 @@ def run():
             page.wait_for_timeout(500)
             page.keyboard.press("Enter")
             page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(2000)
 
             if "login" not in page.url:
                 print("Login successful.")
