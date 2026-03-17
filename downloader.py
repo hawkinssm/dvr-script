@@ -29,19 +29,42 @@ def run():
         context = browser.new_context(accept_downloads=True)
         page = context.new_page()
 
-        # Log in
-        page.goto(URL)
-        page.wait_for_load_state("domcontentloaded")
-        # Give it time to breathe so they don't think we're a bot
-        page.wait_for_timeout(3000)
-        page.get_by_role("textbox", name="Email").click()
-        page.get_by_role("textbox", name="Email").fill(EMAIL)
-        page.get_by_role("textbox", name="Password").click()
-        page.get_by_role("textbox", name="Password").fill(PASSWORD)
-        # More time to breathe so the form doesn't reject us
-        page.wait_for_timeout(1000)
-        page.get_by_role("button", name="Log In").click()
-        page.wait_for_load_state("networkidle")
+        # Try logging in up to 3 times if needed
+        max_retries = 3
+        logged_in = False
+
+        for attempt in range(max_retries):
+            print(f"Login attempt {attempt + 1} of {max_retries}...")
+            page.goto(URL)
+            page.wait_for_load_state("domcontentloaded")
+            page.wait_for_timeout(3000)
+            page.get_by_role("textbox", name="Email").click()
+            page.get_by_role("textbox", name="Email").fill(EMAIL)
+            page.get_by_role("textbox", name="Password").click()
+            page.get_by_role("textbox", name="Password").fill(PASSWORD)
+            page.wait_for_timeout(1000)
+            page.get_by_role("button", name="Log In").focus()
+            page.wait_for_timeout(500)
+            page.keyboard.press("Enter")
+            page.wait_for_load_state("networkidle")
+
+            if "login" not in page.url:
+                print("Login successful.")
+                logged_in = True
+                break
+            else:
+                print(f"Login failed. Waiting 60 seconds before retry...")
+                page.wait_for_timeout(60000)
+
+        if not logged_in:
+            print("All login attempts failed. Exiting.")
+            with open("error.log", "a") as f:
+                from datetime import datetime
+                f.write(f"{datetime.now()} - Login failed after {max_retries} attempts.\n")
+            context.close()
+            browser.close()
+            return
+
         # Give the list some time to load before determining there are no new titles
         page.wait_for_selector("[id^='list-download-']", timeout=15000)
 
