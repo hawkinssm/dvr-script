@@ -1,15 +1,16 @@
 import os
 from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
-# Specify env path to match this script for use with cron
 from pathlib import Path
+from datetime import datetime
+
 load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
-EMAIL = os.getenv("DVR_EMAIL")
-PASSWORD = os.getenv("DVR_PASSWORD")
 URL = os.getenv("DVR_URL")
 DOWNLOAD_DIR = os.getenv("DVR_DOWNLOAD_DIR")
-LOG_FILE = "downloaded.log"
+SESSION_DIR = str(Path(__file__).parent / "session")
+LOG_FILE = str(Path(__file__).parent / "downloaded.log")
+ERROR_LOG = str(Path(__file__).parent / "error.log")
 
 def load_log():
     if not os.path.exists(LOG_FILE):
@@ -26,51 +27,23 @@ def run():
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(accept_downloads=True)
+        context = p.chromium.launch_persistent_context(
+            SESSION_DIR,
+            headless=True,
+            accept_downloads=True
+        )
         page = context.new_page()
+        page.goto(URL.replace("/login", ""))
 
-        # Try logging in up to 3 times if needed
-        max_retries = 3
-        logged_in = False
-
-        for attempt in range(max_retries):
-            print(f"Login attempt {attempt + 1} of {max_retries}...")
-            page.goto(URL)
-            page.wait_for_load_state("domcontentloaded")
-            page.wait_for_timeout(3000)
-            page.get_by_role("textbox", name="Email").click()
-            page.get_by_role("textbox", name="Email").fill(EMAIL)
-            page.get_by_role("textbox", name="Password").click()
-            page.get_by_role("textbox", name="Password").fill(PASSWORD)
-            page.wait_for_timeout(1000)
-            page.get_by_role("button", name="Log In").focus()
-            page.wait_for_timeout(500)
-            page.keyboard.press("Enter")
-            page.wait_for_load_state("networkidle")
-            page.wait_for_timeout(2000)
-
-            if "login" not in page.url:
-                print("Login successful.")
-                logged_in = True
-                break
-            else:
-                print(f"Login failed. Waiting 60 seconds before retry...")
-                page.wait_for_timeout(60000)
-
-        if not logged_in:
-            print("All login attempts failed. Exiting.")
-            with open("error.log", "a") as f:
-                from datetime import datetime
-                f.write(f"{datetime.now()} - Login failed after {max_retries} attempts.\n")
+        try:
+            page.wait_for_selector("[id^='list-download-']", timeout=15000)
+        except:
+            print("Could not load recordings page. Session may have expired.")
+            with open(ERROR_LOG, "a") as f:
+                f.write(f"{datetime.now()} - Session expired or recordings page failed to load.\n")
             context.close()
-            browser.close()
             return
 
-        # Give the list some time to load before determining there are no new titles
-        page.wait_for_selector("[id^='list-download-']", timeout=15000)
-
-        # Find all download buttons on the page
         download_buttons = page.locator("[id^='list-download-']").all()
         print(f"Found {len(download_buttons)} titles to check.")
 
@@ -90,6 +63,5 @@ def run():
             print(f"Saved: {download.suggested_filename}")
 
         context.close()
-        browser.close()
 
 run()
